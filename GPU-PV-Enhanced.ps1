@@ -11,7 +11,7 @@ public class PInvoke {
 # ***Change Variables Here*** #
 
     # Virtual Machine Name
-    [string]$VMName="VM NAME HERE"
+    [string]$VMName="VIRTUAL MACHINE NAME"
 
     # GUEST GPU Compute/Decode/Encode Percentage
     [int]$GPUProcSplitPercent=66
@@ -20,7 +20,7 @@ public class PInvoke {
     [int]$GPUVRAMSplitPercent=75
 
     # GUEST RAM Amount Percentage
-    [int]$RAMAmount=50 #Alignment matters, yes I forgot about that... I'll patch later lmfao
+    [int]$RAMAmount=66.66
 
     # Automatically Set Resolution To Current HOST Resolution? If $false Then Defaults To "Max Hyper-V Supported" -> 1920/1080
     [bool]$ScreenResolutionAutoSet=$true
@@ -40,7 +40,7 @@ if($ScreenResolutionAutoSet){
 [float]$RAMSplitPercent=[math]::round($(100/$RAMAmount),2)
 [float]$GPUProcSplit=[math]::round($(100/$GPUProcSplitPercent),2)
 [float]$GPUVRAMSplit=[math]::round($(100/$GPUVRAMSplitPercent),2)
-[long]$SplitRAM=((((Get-WmiObject Win32_PhysicalMemory).Capacity | Measure-Object -Sum).Sum/1048576)/$RAMSplitPercent)*1MB
+[long]$SplitRAM=([math]::Ceiling(((((Get-WmiObject Win32_PhysicalMemory).Capacity | Measure-Object -Sum).Sum/1048576)/$RAMSplitPercent)/2)*2)*1MB
 [Microsoft.HyperV.PowerShell.VirtualizationObject]$VMPartGPU=(Get-VMPartitionableGPU)
 [uint64]$SplitCompute=([math]::round($($VMPartGPU.MaxPartitionCompute/$GPUProcSplit)))
 [uint64]$SplitDecode=([math]::round($($VMPartGPU.MaxPartitionDecode/$GPUProcSplit)))
