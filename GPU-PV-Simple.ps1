@@ -27,22 +27,20 @@ public class PInvoke {
 
 # ***No Touch Below*** #
 if($ScreenResolutionAutoSet){
-    $hdc=[PInvoke]::GetDC([IntPtr]::Zero)
+    [IntPtr]$hdc=[PInvoke]::GetDC([IntPtr]::Zero)
     [int]$HorizonalResolution=[PInvoke]::GetDeviceCaps($hdc,118)
     [int]$VerticalResolution=[PInvoke]::GetDeviceCaps($hdc,117)
 }else{
     [int]$HorizonalResolution=1920
     [int]$VerticalResolution=1080
 }
-[float]$RAMSplitPercent=[math]::round($(100/$RAMAmount),2)
 [float]$GPUProcSplit=[math]::round($(100/$GPUProcSplitPercent),2)
-[float]$GPUVRAMSplit=[math]::round($(100/$GPUVRAMSplitPercent),2)
-[long]$SplitRAM=([math]::Ceiling(((((Get-WmiObject Win32_PhysicalMemory).Capacity | Measure-Object -Sum).Sum/1048576)/$RAMSplitPercent)/2)*2)*1MB
+[long]$SplitRAM=([math]::Ceiling(((((Get-WmiObject Win32_PhysicalMemory).Capacity | Measure-Object -Sum).Sum/1048576)/[math]::round($(100/$RAMAmount),2))/2)*2)*1MB
 [Microsoft.HyperV.PowerShell.VirtualizationObject]$VMPartGPU=(Get-VMPartitionableGPU)
 [uint64]$SplitCompute=([math]::round($($VMPartGPU.MaxPartitionCompute/$GPUProcSplit)))
 [uint64]$SplitDecode=([math]::round($($VMPartGPU.MaxPartitionDecode/$GPUProcSplit)))
 [uint64]$SplitEncode=([math]::round($($VMPartGPU.MaxPartitionEncode/$GPUProcSplit)))
-[uint64]$SplitVRAM=([math]::round($($VMPartGPU.MaxPartitionVRAM/$GPUVRAMSplit)))
+[uint64]$SplitVRAM=([math]::round($($VMPartGPU.MaxPartitionVRAM/[math]::round($(100/$GPUVRAMSplitPercent),2))))
 
 # ***Where The Magic Happens*** #
 Set-VM -VMName $VMName -AutomaticCheckpointsEnabled $false -AutomaticStopAction TurnOff -CheckpointType Disabled -GuestControlledCacheTypes $true -LowMemoryMappedIoSpace 3GB -HighMemoryMappedIoSpace $SplitRAM -StaticMemory -MemoryStartupBytes $SplitRAM
